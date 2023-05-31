@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TodoList</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body>
+    <h1>Список дел</h1>
+    <table id="data"></table>
+    
+  </body>
+</html>
+<p>
+  <label class="my-select" for="sort-select">Сортировка: </label>
+  <select class="my-select" id="sort-select" onchange="fetchData(this.value)">
+    <option class="my-select" value="">Все задачи</option>
+    <option class="my-select" value="active-sort">Активные задачи</option>
+    <option class="my-select" value="complete-sort">Выполненные задачи</option>
+    <option class="my-select" value="ascpriority-sort">По возрастанию</option>
+    <option class="my-select" value="descpriority-sort">По убыванию</option>
+  </select>
+</p>
+<form id="myForm">
+  <label class="my-input" for="todoInput">Задача:</label>
+  <input class="my-input" type="text" id="todoInput" name="todoInput"><br><br>
+  <button class="my-button" type="submit" id="submit">Добавить</button>
+</form>
+<p>
+    <label class="my-input" for="todoInput">Задача:</label>
+    <input class="my-input" type="text" id="todoInputLex" name="todoInputLex"><br><br>
+    <label class="my-input" for="todoInput">Приоритет первого:</label>
+    <input class="my-input" type="text" id="prioroneInputLex" name="prioroneInputLex"><br><br>
+    <label class="my-input" for="todoInput">Приоритет второго:</label>
+    <input class="my-input" type="text" id="priortwoInputLex" name="priortwoInputLex"><br><br>
+    <button class="my-button" type="submitcalclex" id="submitcalclex">Добавить задачу между двумя записями</button>
+</p>
+<p>
+  <button class="my-button" id="export-json">Экспорт в JSON</button>
+</p>
+<p>
+  <input class="my-input" type="file" id="import-file-input">
+  <button class="my-button" id="import-button">Импорт JSON</button>
+</p>
+
+<script src="lexorank.js"></script>
