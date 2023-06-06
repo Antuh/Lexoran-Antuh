@@ -323,6 +323,160 @@ importButton.addEventListener('click', () => {
   }
 });
 
+function changeTask(id) {
+  const requestUrl = `http://localhost:8082/databases/TodoListDatabase/docs?id=${id}`;
+  fetch(requestUrl)
+    .then(response => response.json())
+    .then(data => {
+      const modal = document.createElement('div');
+      modal.style = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);'
+      const modalContent = document.createElement('div');
+      modalContent.style = 'background-color: white; width: 500px; height: 400px; margin: 100px auto; padding: 20px;';
+      const closeButton = document.createElement('button');
+      closeButton.innerHTML = '&times;';
+      closeButton.style = 'position: absolute; top: 10px; right: 10px; font-size: 20px; font-weight: bold; border: none; background-color: white; cursor: pointer;';
+      modalContent.appendChild(closeButton);
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+
+      const titleInput = document.createElement('input');
+      titleInput.value = data.text ? data.text : ''; 
+      modalContent.appendChild(document.createTextNode('Наименование: '));
+      modalContent.appendChild(titleInput);
+      modalContent.appendChild(document.createElement('br'));
+
+      /*const priorityInput = document.createElement('select');
+      priorityInput.innerHTML = `
+        <option value="6" ${data.priority === '1' ? 'selected' : ''}>Высокий</option>
+        <option value="5" ${data.priority === '2' ? 'selected' : ''}>Средний</option>
+        <option value="4" ${data.priority === '3' ? 'selected' : ''}>Низкий</option>
+      `;
+      modalContent.appendChild(document.createTextNode('Приоритет: '));
+      modalContent.appendChild(priorityInput);
+      modalContent.appendChild(document.createElement('br'));*/
+
+      const priorityInput = document.createElement('input');
+      priorityInput.type = 'number'; 
+      priorityInput.value = data.priority ? data.priority : ''; 
+      modalContent.appendChild(document.createTextNode('Приоритет: '));
+      modalContent.appendChild(priorityInput);
+      modalContent.appendChild(document.createElement('br'));
+
+      priorityInput.addEventListener('keydown', (event) => {
+        if (!/^\d*$/.test(event.key)) { 
+          event.preventDefault(); 
+        }
+      });
+
+      const statusInput = document.createElement('select');
+      statusInput.innerHTML = `
+        <option value="Активно" ${data.status === 'Активно' ? 'selected' : ''}>Активно</option>
+        <option value="Выполнено" ${data.status === 'Выполнено' ? 'selected' : ''}>Выполнено</option>
+      `;
+      modalContent.appendChild(document.createTextNode('Статус: '));
+      modalContent.appendChild(statusInput);
+      modalContent.appendChild(document.createElement('br'));
+
+      const updateButton = document.createElement('button');
+      updateButton.textContent = 'Изменить';
+      modalContent.appendChild(updateButton);
+
+      updateButton.addEventListener('click', () => {
+        const updatedData = {
+          "text": titleInput.value,
+          "priority": priorityInput.value,
+          "status": statusInput.value,
+          "@metadata": {
+              "@collection": "task"
+          }
+        };
+
+        fetch(requestUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedData)
+        })
+        .then(response => {
+          if (response.ok) {
+            document.body.removeChild(modal);
+            const currentRow = document.getElementById(id);
+          } else {
+            throw new Error('Ошибка при изменении задачи');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          alert('Ошибка при изменении задачи');
+        });
+      });
+
+      closeButton.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+    })
+    .catch(error => {
+      console.error(error);
+      alert('Ошибка при загрузке задачи');
+    });
+}
+
+function deleteTask(id) {
+  fetch(`http://localhost:8082/databases/TodoListDatabase/docs?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8',
+    },
+  })
+    .then(response => {
+      if (response.ok) {
+        const rows = document.getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.firstChild.textContent === id) {
+            row.parentNode.removeChild(row);
+            break;
+          }
+        }
+      } else {
+        console.error(`Ошибка удаления документа с id ${id}`);
+      }
+    })
+    .catch(error => {
+      console.error(`Ошибка удаления документа с id ${id}`, error);
+    });
+}
+
+const exporttsvButton = document.getElementById('export-tsv');
+exporttsvButton.addEventListener('click', () => {
+const query = 'from task';
+const filename = 'result.tsv';
+
+fetch('http://localhost:8082/databases/TodoListDatabase/queries', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+  body: JSON.stringify({ Query: query }),
+})
+  .then(response => response.json())
+  .then(data => {
+    const tsvData = data.Results.map(result => Object.values(result).join('\t')).join('\n');
+    const blob = new Blob([tsvData], { type: 'text/tab-separated-values' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    console.log(`Data exported successfully to ${filename}`);
+  })
+  .catch(error => {
+    console.error('Error exporting data:', error);
+  });
+});
+
 window.addEventListener('DOMContentLoaded', () => {
   createTaskLexorank();
   createTask();
